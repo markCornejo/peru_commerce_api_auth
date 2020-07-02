@@ -26,7 +26,16 @@ Route::post('user/login', 'UsUserController@login');
 
 
 Route::group(['middleware' => 'auth:api'], function () {
-    Route::get('pruebas', 'PruebaController@prueba');
+
+    Route::get('home', 'HomeController@prueba');
     Route::post('user/logout', 'UsUserController@logout');
+
+    Route::group(['prefix' => 'master'], function() {
+
+        Route::apiResource('roles', 'Master\RolesController');
+
+    });
+
+
 });
 

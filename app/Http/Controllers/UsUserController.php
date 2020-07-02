@@ -7,6 +7,7 @@ use App\UsUser;
 use App\Http\Requests\RegisterUserRequest;
 use App\Traits\ApiResponserGateway;
 use App\Services\UserService;
+use App\Http\Resources\UsUser as UsUserResource;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -33,8 +34,9 @@ class UsUserController extends Controller
         $input['date_add'] = Carbon::now()->format('Y-m-d');
         // var_dump($input); exit;
         $user = UsUser::create($input);
+        $user->token = null;
 
-        return $this->successResponse(true, $user);
+        return $this->successResponse(true, new UsUserResource($user));
 
     }
 
@@ -47,7 +49,7 @@ class UsUserController extends Controller
         if($loginre) {
             $user = Auth::user();
             $user->token = $loginre;
-            return $this->successResponse(true, $user);
+            return $this->successResponse(true, new UsUserResource($user));
         } else {
             return $this->successResponse(false, [], 'Invalid credentials');
         }

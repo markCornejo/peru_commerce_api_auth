@@ -57,9 +57,10 @@ class RolesController extends Controller
      * @param  \App\PcRoles  $pcRoles
      * @return \Illuminate\Http\Response
      */
-    public function show($role/*PcRoles $pcRoles*/)
+    public function show($lang, $role/*PcRoles $pcRoles*/)
     {
-        $pcRoles = PcRoles::selectFirst($role)->first();
+        PcRoles::findOrFail($role); // verificar la busqueda
+        $pcRoles = PcRoles::selectFirst($role)->first(); // entregar los datos completos con su lenguaje
         return $this->successResponse(true, new PcRoleResources($pcRoles));
     }
 
@@ -70,7 +71,7 @@ class RolesController extends Controller
      * @param  \App\PcRoles  $pcRoles
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, PcRoles $pcRoles, $role)
+    public function update(RoleRequest $request, PcRoles $pcRoles, $lang, $role)
     {
         $response = true;
         DB::transaction(function () use ($request, $pcRoles, $role, &$response) {

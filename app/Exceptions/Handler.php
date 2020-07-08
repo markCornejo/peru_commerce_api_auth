@@ -61,15 +61,16 @@ class Handler extends ExceptionHandler
 
         if($exception instanceof HttpException) {
             $code = $exception->getStatusCode();
-            $message = Response::$statusTexts[$code];
-
+            $message = $exception->getMessage();
+            // $message = Response::$statusTexts[$code];
+            // var_dump($message); exit;
             return $this->errorResponse($message, $code);
         }
 
         if($exception instanceof ModelNotFoundException) {
             $model = strtolower(class_basename($exception->getModel()));
 
-            return $this->errorResponse("Does not exist any instance of {$model} with the given id", Response::HTTP_NOT_FOUND);
+            return $this->errorResponse(trans('messagecustom.errors.modelnotfound_1', ['model' => $model]), Response::HTTP_NOT_FOUND);
         }
 
         if($exception instanceof AuthorizationException) {

@@ -2,9 +2,12 @@
 
 namespace App;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Passport\HasApiTokens;
 
 class UsUser extends Authenticatable
@@ -44,4 +47,137 @@ class UsUser extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
     */
+
+    /* ************************************************************************************************************************************/
+    /* ***************************************************RELATIONSHIPS******************************************************************/
+    /* ************************************************************************************************************************************/
+
+
+    /**
+     * Many to Many with us_socialnetworks
+     *
+     *
+     */
+    public function us_socialnetworks()
+    {
+        return $this->belongsToMany('App\UsSocialnetworks', 'us_userlogins', 'us_users_id', 'us_socialnetworks_id');
+    }
+
+    /**
+     * Many to Many with pc_users_roles
+     *
+     *
+     */
+    public function pc_users_roles() {
+        return $this->belongsToMany('App\PcRole', 'pc_users_roles', 'us_users_id', 'pc_roles_id');
+    }
+
+    /* ************************************************************************************************************************************/
+    /* ******************************************************CONFIGURATIONS****************************************************************/
+    /* ************************************************************************************************************************************/
+
+    /**
+     * Save a new model and return the instance.
+     *
+     * @param  array  $attributes
+     * @return static
+    */
+    public static function create(array $attributes = [])
+    {
+        $model = new static($attributes);
+        $model = self::defineDateAdd($model);
+        $model->save();
+        return $model;
+    }
+
+    /**
+     * defineDateUpd
+     *
+     * @param  array $model
+     * @return array
+     */
+    public static function defineDateUpd(array $model) {
+        $model['date_upd'] = Carbon::now()->format('Y-m-d H:i:s');
+        if(@Auth::id()) {
+            $model['user_upd'] = @Auth::id();
+        }
+        return $model;
+    }
+
+    /**
+     * Agregar fecha y usuario a la tabla
+     *
+     * @param  App\UsUser $array
+     * @return App\UsUser
+     */
+    public static function defineDateAdd($model) {
+        $model->date_add = Carbon::now()->format('Y-m-d H:i:s');
+
+        if(@Auth::id()) {
+            $model->user_add = @Auth::id();
+        }
+
+        return $model;
+    }
+
+    /* ************************************************************************************************************************************/
+    /* ******************************************************* SCOPE *********************************************************************/
+    /* ************************************************************************************************************************************/
+
+    /**
+     * scope es un a method de Model Eloquent
+     * Obtener el usuario con su rol y agregar el sitio
+     *
+     * @param  App\UsUser $query
+     * @param  int $user_id
+     * @return App\UsUser
+     */
+    public function scopeGetDataUserRole($query, $user_id) {
+        $result = $query->select('id', 'firstname', 'lastname')
+                        ->where('id', $user_id)
+                        ->with(['pc_users_roles' => function($query) {
+                            return $query->select('id', 'name', 'description');
+                        }])
+                        ->first()
+                        ;
+
+        if(@$result) {
+
+            // Aqui Invocar a la API de sites para obtener y unir los lugares con los usuarios con rol.
+
+
+            return $result;
+        }
+
+        return $result; // abort(Response::HTTP_FORBIDDEN, "Query error scopeGetDataUserRole.");;
+
+    }
+
+
+    /**
+     * scope es un method de Model Eloquent
+     * Obtener todos los usuarios con roles de master o admins
+     *
+     * @param  App\UsUser $query
+     * @return App\UsUser
+     */
+    public function scopeGetFullDataUserRole($query) {
+        $result = $query->whereHas('pc_users_roles', function($query) {
+                            return true;
+                        })
+                        ->with('pc_users_roles')
+                        ->paginate(100)
+                        ;
+
+        if(@$result) {
+
+            // Aqui Invocar a la API de sites para obtener y unir los lugares con los usuarios con rol.
+
+            return $result;
+        }
+
+        return $result; // abort(Response::HTTP_FORBIDDEN, "Query error scopeGetFullDataUserRole.");;
+
+    }
+
 }

@@ -48,9 +48,24 @@ class RegisterUserRequest extends FormRequest
                     'pc_countries_id' => 'exists:pc_countries,id',
                 ];
             break;
+            case 'GET':
+            case 'HEAD':
+                return [];
+                break;
+            case 'DELETE':
+                return [];
+                break;
+            case 'PATCH':
             case 'PUT':
                 return [
-                    // validation for put method
+                    'firstname' => 'required|string',
+                    'lastname' => 'string',
+                    'phone' => 'digits_between:0,15',
+                    'address' => 'string|max:100',
+                    'birthdate' => 'date_format:Y-m-d|before:today',
+                    'genere' => 'string|in:M,F,O',
+                    'photo' => 'string|max:100',
+                    'pc_countries_id' => 'exists:pc_countries,id',
                 ];
             break;
             default:

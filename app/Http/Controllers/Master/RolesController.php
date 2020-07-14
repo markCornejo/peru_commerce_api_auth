@@ -17,6 +17,14 @@ use Illuminate\Support\Facades\DB;
 class RolesController extends Controller
 {
     use ApiResponserGateway;
+
+    public function __construct()
+    {
+        $this->middleware('ACL.master:master.role.list.index')->only('index');
+        $this->middleware('ACL.master:master.role.list.store')->only('store');
+    }
+
+
     /**
      * Display a listing of the resource.
      *
@@ -24,7 +32,7 @@ class RolesController extends Controller
      */
     public function index()
     {
-        $pcRoles = PcRoles::with("pc_role_lg")->get();
+        $pcRoles = PcRoles::with("pc_role_lg")->paginate('100');
         return $this->successResponse(true, new PcRoleResources($pcRoles));
     }
 
@@ -48,7 +56,6 @@ class RolesController extends Controller
         });
 
         return $this->successResponse(true, new PcRoleResources($role), '', 201);
-
     }
 
     /**

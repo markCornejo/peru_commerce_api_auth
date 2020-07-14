@@ -19,8 +19,8 @@ class PcPrivilegesAction extends Model
      *
      *
      */
-    public function pc_privileges_actions() {
-        return $this->belongsToMany('App\PcRole', 'pc_privileges_roles', 'action_name', 'pc_roles_id');
+    public function pc_privileges_roles() {
+        return $this->belongsToMany('App\PcRole', 'pc_privileges_roles', 'pc_privileges_action_name', 'pc_roles_id');
     }
 
 

@@ -172,7 +172,6 @@ class UsUser extends Authenticatable
         if(@$result) {
 
             // Aqui Invocar a la API de sites para obtener y unir los lugares con los usuarios con rol.
-
             return $result;
         }
 

@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Arr;
 
 class PrivilegeRequest extends FormRequest
 {
@@ -13,7 +14,7 @@ class PrivilegeRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,8 +24,33 @@ class PrivilegeRequest extends FormRequest
      */
     public function rules()
     {
-        return [
-            //
-        ];
+        // you can also customize your validation for different methods as below
+        switch ($this->method()){
+            case 'POST':
+                return [
+                    // 'language_main' => 'required|json',
+                    'action_name' => 'array',
+                    'action_name.*.pc_privileges_action_name' => [
+                        'string',
+                        'exists:pc_privileges_actions,action_name'
+                    ]
+                ];
+                break;
+            case 'GET':
+            case 'HEAD':
+                return [];
+                break;
+            case 'DELETE':
+                return [];
+                break;
+            case 'PATCH':
+            case 'PUT':
+                return [];
+                break;
+            default:
+                return [];
+                break;
+       }
+
     }
 }

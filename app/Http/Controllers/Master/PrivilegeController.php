@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Master;
 use App\Traits\ApiResponserGateway;
 use App\PcPrivilegesAction;
 use App\PcRole;
+use App\Http\Requests\PrivilegeRequest;
+use App\Http\Resources\PrivilegeMaster as PrivilegeMasterResources;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\PrivilegeMaster as PrivilegeMasterResources;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
@@ -27,9 +29,7 @@ class PrivilegeController extends Controller
         //
         $pc_role_id = (int) $request->route('role');
         $role_privilege = PcRole::roleWithPrivilege($pc_role_id);
-
-        return $role_privilege;
-
+        return $this->successResponse(true, new PrivilegeMasterResources($role_privilege));
     }
 
     /**
@@ -41,9 +41,28 @@ class PrivilegeController extends Controller
     public function store(Request $request)
     {
         $pc_role_id = (int) $request->route('role');
-        $array_action_name = Arr::pluck($request->all(), ['pc_privileges_action_name']);
+        $array_action_name = Arr::pluck($request->action_name, ['pc_privileges_action_name']);
+
+        // esta validación es para idetificar si se escogio solo privilegios de store o sólo de master. No puede entremezclarse privilegios.
+        $actname = array_search('store', $array_action_name); // Store es un tipo de privilegio. store es para privilegios del admin.
+        if(@$actname >= 0 && $actname !== false) {
+            if(count(@preg_grep('/^master.*/', $array_action_name)) > 0) { // si encuentra un resultado entonces generar un error. 'master' viene a ser una palabra registrada en la base de datos como privilegio de nivel 0. Los hijos de master deben contener en su nombre la palabra master. For example master.son.show
+                // mostrar error
+                return abort(Response::HTTP_FORBIDDEN, "You have sent incorrect data.");
+            }
+        }
+
+        $actname = array_search('master', $array_action_name); // master es un tipo de privilegio. master es para privilegios de superadmin de todo el sistema.
+        if(@$actname >= 0 && $actname !== false) {
+            if(count(@preg_grep('/^store.*/', $array_action_name)) > 0) { // si encuentra un resultado entonces generar un error. 'store' viene a ser una palabra registrada en la base de datos como privilegio de nivel 0. Los hijos de store deben contener en su nombre la palabra store. For example store.son.show
+                // mostrar error
+                return abort(Response::HTTP_FORBIDDEN, "You have sent incorrect data.");
+            }
+        }
+
         PcRole::findOrFail($pc_role_id)->pc_privileges_actions()->detach();
-        $privileges = PcRole::findOrFail($pc_role_id)->pc_privileges_actions()->attach($array_action_name);
+        PcRole::findOrFail($pc_role_id)->pc_privileges_actions()->attach($array_action_name);
+
         return $this->successResponse(true, new PrivilegeMasterResources(PcRole::with('pc_privileges_actions')->findOrFail($pc_role_id)));
     }
 

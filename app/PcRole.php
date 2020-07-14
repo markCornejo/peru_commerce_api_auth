@@ -157,44 +157,45 @@ class PcRole extends Model
         $result1 = $query->with('pc_privileges_actions')->findOrFail($pc_role_id);
         $array_action_name = Arr::pluck($result1->pc_privileges_actions, ['action_name']);
 
-        $sql = "CASE action_name ";
+        $sql = "CASE action_name WHEN 'ejemploFirst' THEN false ";
         foreach($array_action_name as $key => $value) {
             $sql = $sql . "WHEN '$value' THEN true ";
         }
         $sql = $sql . "ELSE false END as check_rol"; // check_rol. Si es true es un rol que le pertenece, si es false el privilegio no le pertenece
 
         $qu4 = function($query) use ($sql) {
-            return $query->select('*', DB::raw($sql))
+            return $query->select('action_name', 'label', 'class_icon', 'type_id', 'checkeable', DB::raw($sql), 'pc_privileges_action_name')
                          ->with('pc_privileges_action_name');
         };
 
         $qu3 = function($query) use ($qu4, $sql) {
-            return $query->select('*', DB::raw($sql))
+            return $query->select('action_name', 'label', 'class_icon', 'type_id', 'checkeable', DB::raw($sql), 'pc_privileges_action_name')
                          ->with(['pc_privileges_action_name' => $qu4]);
         };
 
         $qu2 = function($query) use ($qu3, $sql) {
-            return $query->select('*', DB::raw($sql))
+            return $query->select('action_name', 'label', 'class_icon', 'type_id', 'checkeable', DB::raw($sql), 'pc_privileges_action_name')
                          ->with(['pc_privileges_action_name' => $qu3]);
         };
 
         $qu1 = function($query) use ($qu2, $sql) {
-            return $query->select('*', DB::raw($sql))
+            return $query->select('action_name', 'label', 'class_icon', 'type_id', 'checkeable', DB::raw($sql), 'pc_privileges_action_name')
                          ->with(['pc_privileges_action_name' => $qu2]);
         };
 
         $qu = function($query) use ($qu1, $sql) {
-            return $query->select('*', DB::raw($sql))
+            return $query->select('action_name', 'label', 'class_icon', 'type_id', 'checkeable', DB::raw($sql), 'pc_privileges_action_name')
                          ->with(['pc_privileges_action_name' => $qu1]);
         };
 
-        $result2 = PcPrivilegesAction::select('*', DB::raw($sql))
+        $result2 = PcPrivilegesAction::select('action_name', 'label', 'class_icon', 'type_id', 'checkeable', DB::raw($sql), 'pc_privileges_action_name')
                                      ->whereIn('action_name', ['store', 'master'])
+                                     ->where('status', 1)
                                      ->with(['pc_privileges_action_name' => $qu])
                                      ->get();
 
 
-        $role = self::findOrFail($pc_role_id);
+        $role = self::select('id', 'name', 'description', 'status')->where('status', 1)->findOrFail($pc_role_id);
         $collection = collect([$role]);
         $newResult = $collection->map( function($item) use ($result2) {
             $item->pc_privileges_actions = $result2->toArray();

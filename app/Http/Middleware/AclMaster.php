@@ -46,7 +46,7 @@ class AclMaster
     }
 
     /**
-     * Funcion que usa mongodb como caché
+     * Funcion que usa mongodb como caché y verificar el rol con los privilegios
      *
      */
     public function withMongo($request, Closure $next, $ACL)
@@ -55,7 +55,7 @@ class AclMaster
         // $connectMongo = $this->_serviceMongo->CheckConnection();
         $connectMongo = true;
 
-        if($connectMongo && MgRolePrivilege::verifyRolPrivilege($user_id, $ACL)) { // si connectMongo = true y está en cache mongo entonces
+        if($connectMongo && MgRolePrivilege::verifyRolPrivilege($user_id, $ACL)) { // si connectMongo = true y está en cache mongo entonces. mongodb
             return $next($request);
         } else {
 
@@ -63,6 +63,7 @@ class AclMaster
                             $query->where('id', $user_id)
                                   ->whereNull('pc_users_roles.pc_sites_id'); // null para cuando es un usuario manager master/superadmin
                          })
+                         ->where('status', 1)
                          ->first()
                          ;
 
@@ -72,11 +73,12 @@ class AclMaster
                                                     $query->where('id', $rol_id);
                                                 })
                                                 ->where('action_name', $ACL)
+                                                ->where('status', 1)
                                                 ->first();
 
                 if($privilege) {
 
-                    $this->_serviceMongo->RegisterCache($user_id, $rol_id, $rol);
+                    MgRolePrivilege::registerAclCache($user_id, $rol_id, $rol); // registrar eb mongodb
                     return $next($request);
                 }
 

@@ -11,8 +11,10 @@ use App\Http\Resources\ManagerMasterCollection;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\MgRolePrivilege;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ManagerController extends Controller
 {
@@ -65,13 +67,16 @@ class ManagerController extends Controller
      */
     public function update(ManagerMasterRequest $request, UsUser $usUser)
     {
-        $user_id = $request->route('manager');
+        $user_id = (int) $request->route('manager'); //id user
         $role = PcRole::whereHas('pc_users_roles', function($query) use ($user_id) {
             return $query->where('id', $user_id);
         })->firstOrFail();
 
-        $role->pc_users_roles()->detach($user_id);
-        $usUser->findOrFail($user_id)->pc_users_roles()->attach($request->role_id, ['user_add' => Auth::id(), 'date_add' => Carbon::now()->format('Y-m-d H:i:s')]);
+        DB::transaction(function () use ($role, $usUser, $request, $user_id) {
+            $role->pc_users_roles()->detach($user_id);
+            $usUser->findOrFail($user_id)->pc_users_roles()->attach($request->role_id, ['user_add' => Auth::id(), 'date_add' => Carbon::now()->format('Y-m-d H:i:s')]);
+            MgRolePrivilege::where('id_user', $user_id)->delete(); // borrar caché de mongodb
+        });
 
         return $this->successResponse(true, new ManagerMasterResources(UsUser::getDataUserRole($user_id)));
 
@@ -83,8 +88,14 @@ class ManagerController extends Controller
      * @param  \App\UsUser  $usUser
      * @return \Illuminate\Http\Response
      */
-    public function destroy(UsUser $usUser)
+    public function destroy(UsUser $usUser, Request $request)
     {
-        //
+        $user_id = (int) $request->route('manager');
+
+        DB::transaction(function () use ($usUser, $user_id) {
+            $usUser->findOrFail($user_id)->pc_users_roles()->detach();
+            MgRolePrivilege::where('id_user', $user_id)->delete(); // borrar caché de mongodb
+        });
+        return $this->successResponse(true, []);
     }
 }

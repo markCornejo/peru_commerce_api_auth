@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\RoleRequest;
 use App\PcRole as PcRoles;
 use App\PcRoleLg;
-
+use App\MgRolePrivilege;
+// use App\Services\MongoService;
 use App\Http\Resources\PcRole as PcRoleResources;
 use App\Traits\ApiResponserGateway;
+
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,10 +20,19 @@ class RolesController extends Controller
 {
     use ApiResponserGateway;
 
+    protected $_serviceMongo;
+
     public function __construct()
     {
+        /*
         $this->middleware('ACL.master:master.role.list.index')->only('index');
         $this->middleware('ACL.master:master.role.list.store')->only('store');
+        $this->middleware('ACL.master:master.role.list.show')->only('show');
+        $this->middleware('ACL.master:master.role.list.update')->only('update');
+        $this->middleware('ACL.master:master.role.list.destroy')->only('destroy');
+        */
+        $this->middleware('ACL.master:master')->only(['index', 'store', 'show', 'update', 'destroy']);
+
     }
 
 
@@ -82,13 +93,19 @@ class RolesController extends Controller
     {
         $response = true;
         DB::transaction(function () use ($request, $pcRoles, $role, &$response) {
+            $role = (int) $role;
             $input = $request->all();
             $input = $pcRoles->defineDateUpd($input); // definir fecha y usuario que actualiza el registro
 
             $roless = $pcRoles->findOrFail($role)->fill($input['language_main'])->save();
 
-            PcRoleLg::findOrFail($role)->delete();
-            if(@$input['language_secondary'] && count($input['language_secondary']) > 0){
+            MgRolePrivilege::changeRolIdStatusAclCache($role, @$input['language_main']['status']); //actualizar caché mongodb
+
+            if($rolexist = PcRoleLg::find($role)) {
+                $rolexist->delete();
+            }
+
+            if(@$input['language_secondary'] && count($input['language_secondary']) > 0) {
                 $response = $pcRoles->findOrFail($role)->pc_role_lg()->createMany($input['language_secondary']);
             }
         });
@@ -105,6 +122,7 @@ class RolesController extends Controller
     public function destroy(PcRoles $pcRoles, $role)
     {
         $pcRoles->findOrFail($role)->fill(["status" => 2])->save();
+        MgRolePrivilege::changeRolIdStatusAclCache($role, 2); //actualizar caché mongodb
         return $this->successResponse(true, []);
     }
 }

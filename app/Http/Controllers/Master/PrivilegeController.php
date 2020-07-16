@@ -9,6 +9,7 @@ use App\Http\Requests\PrivilegeRequest;
 use App\Http\Resources\PrivilegeMaster as PrivilegeMasterResources;
 
 use App\Http\Controllers\Controller;
+use App\MgRolePrivilege;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Arr;
@@ -60,8 +61,11 @@ class PrivilegeController extends Controller
             }
         }
 
-        PcRole::findOrFail($pc_role_id)->pc_privileges_actions()->detach();
-        PcRole::findOrFail($pc_role_id)->pc_privileges_actions()->attach($array_action_name);
+        DB::transaction(function () use ($pc_role_id, $array_action_name) {
+            PcRole::findOrFail($pc_role_id)->pc_privileges_actions()->detach();
+            PcRole::findOrFail($pc_role_id)->pc_privileges_actions()->attach($array_action_name);
+            MgRolePrivilege::changeRolIdStatusAclCache($pc_role_id, 2); //actualizar caché mongodb
+        });
 
         return $this->successResponse(true, new PrivilegeMasterResources(PcRole::with('pc_privileges_actions')->findOrFail($pc_role_id)));
     }

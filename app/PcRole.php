@@ -103,7 +103,7 @@ class PcRole extends Model
     }
 
     /* ************************************************************************************************************************************/
-    /* ************************************************************************************************************************************/
+    /* *********************************************************** SCOPE ******************************************************************/
     /* ************************************************************************************************************************************/
 
     /**
@@ -122,18 +122,21 @@ class PcRole extends Model
 
      /**
      * scope es un a method de Model Eloquent
-     * Verificar si el us_users_id y pc_roles_id existe en la tabla pc_users_roles
+     * Verificar si el user_id y role_id existe en la tabla pc_users_roles
      *
      * @param  App\PcRole $query
      * @param  int $user_id
+     * @param  int $role_id
      * @return App\PcRole
      */
-    public function scopeVerifyUserRole($query, $user_id, $role_id) {
+    public function scopeVerifyUserRole($query, int $user_id, int $role_id) {
+
         $result = $query// ->where('id', $user_id)
                      ->whereHas('pc_users_roles', function($query) use ($user_id) {
                         return $query->where('id', $user_id);
                      })
                      ;
+        // $result = PcPrivilegesAction::where('us_users_id', $user_id)->whereNull('')
 
         if(!$result->exists()) { // si no existe
             return self::findOrFail($role_id);
@@ -203,10 +206,6 @@ class PcRole extends Model
         });
 
         return $newResult->first();
-
     }
-
-
-
 
 }

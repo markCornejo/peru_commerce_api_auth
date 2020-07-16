@@ -175,7 +175,7 @@ class UsUser extends Authenticatable
             return $result;
         }
 
-        return $result; // abort(Response::HTTP_FORBIDDEN, "Query error scopeGetFullDataUserRole.");;
+        return $result; // abort(Response::HTTP_FORBIDDEN, "Query error scopeGetFullDataUserRole.");
 
     }
 

@@ -43,7 +43,7 @@ class RolesController extends Controller
      */
     public function index()
     {
-        $pcRoles = PcRoles::with("pc_role_lg")->paginate('100');
+        $pcRoles = PcRoles::with("pc_role_lg")->where('status', 0)->orWhere('status', 1)->paginate('100');
         return $this->successResponse(true, new PcRoleResources($pcRoles));
     }
 
@@ -64,6 +64,7 @@ class RolesController extends Controller
             if(@$input['language_secondary'] && count($input['language_secondary']) > 0){
                 $role->pc_role_lg()->createMany($input['language_secondary']);
             }
+
         });
 
         return $this->successResponse(true, new PcRoleResources($role), '', 201);
@@ -119,10 +120,13 @@ class RolesController extends Controller
      * @param  \App\PcRoles  $pcRoles
      * @return \Illuminate\Http\Response
      */
-    public function destroy(PcRoles $pcRoles, $role)
+    public function destroy(PcRoles $pcRoles, Request $request)
     {
-        $pcRoles->findOrFail($role)->fill(["status" => 2])->save();
-        MgRolePrivilege::changeRolIdStatusAclCache($role, 2); //actualizar caché mongodb
+        $role = (int) $request->route('role');
+        DB::transaction(function () use ($pcRoles, $role) {
+            $pcRoles->findOrFail($role)->fill(["status" => 2])->save();
+            MgRolePrivilege::changeRolIdStatusAclCache($role, 2); //actualizar caché mongodb
+        });
         return $this->successResponse(true, []);
     }
 }

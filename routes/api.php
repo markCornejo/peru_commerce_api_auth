@@ -38,13 +38,14 @@ Route::group(['prefix' => 'v1/{lang}', 'middleware' => 'lang'], function () {
 
     });
 
-    Route::group(['prefix' => 'admin'], function () {
-
+    Route::group(['prefix' => 'admin', 'middleware' => 'auth:api'], function () {
+        Route::apiResource('sites.managers', 'Admin\ManagerController')->shallow();
     });
 
     Route::group(['prefix' => 'master', 'middleware' => 'auth:api'], function () {
         Route::apiResource('roles', 'Master\RolesController');
         Route::apiResource('roles.privilege', 'Master\PrivilegeController')->shallow();
+        Route::apiResource('roles.packages.privileges', 'Master\PrivilegePackageController')->shallow();
         Route::apiResource('manager', 'Master\ManagerController');
         // Route::apiResource('privilege', 'Master\PrivilegeController');
     });

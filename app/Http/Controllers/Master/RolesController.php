@@ -98,16 +98,16 @@ class RolesController extends Controller
             $input = $request->all();
             $input = $pcRoles->defineDateUpd($input); // definir fecha y usuario que actualiza el registro
 
-            $roless = $pcRoles->findOrFail($role)->fill($input['language_main'])->save();
+            $roless = $pcRoles->where('status', 0)->orWhere('status', 1)->findOrFail($role)->fill($input['language_main'])->save();
 
-            MgRolePrivilege::changeRolIdStatusAclCache($role, @$input['language_main']['status']); //actualizar caché mongodb
+            MgRolePrivilege::changeRolIdStatusAclCache($role, @$input['language_main']['status']); //eliminar caché mongodb
 
             if($rolexist = PcRoleLg::find($role)) {
                 $rolexist->delete();
             }
 
             if(@$input['language_secondary'] && count($input['language_secondary']) > 0) {
-                $response = $pcRoles->findOrFail($role)->pc_role_lg()->createMany($input['language_secondary']);
+                $response = $pcRoles->where('status', 0)->orWhere('status', 1)->findOrFail($role)->pc_role_lg()->createMany($input['language_secondary']);
             }
         });
 

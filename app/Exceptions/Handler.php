@@ -5,6 +5,7 @@ namespace App\Exceptions;
 use App\Traits\ApiResponser;
 use GuzzleHttp\Exception\ClientException;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\Response;
@@ -69,7 +70,6 @@ class Handler extends ExceptionHandler
 
         if($exception instanceof ModelNotFoundException) {
             $model = strtolower(class_basename($exception->getModel()));
-
             return $this->errorResponse(trans('messagecustom.errors.modelnotfound_1', ['model' => $model]), Response::HTTP_NOT_FOUND);
         }
 
@@ -77,7 +77,7 @@ class Handler extends ExceptionHandler
             return $this->errorResponse($exception->getMessage(), Response::HTTP_FORBIDDEN);
         }
 
-        if($exception instanceof AuthorizationException) {
+        if($exception instanceof AuthenticationException) {
             return $this->errorResponse($exception->getMessage(), Response::HTTP_UNAUTHORIZED);
         }
 
@@ -85,6 +85,7 @@ class Handler extends ExceptionHandler
             $errors = $exception->validator->errors()->getMessages();
             return $this->errorResponse($errors, Response::HTTP_UNPROCESSABLE_ENTITY);
         }
+
 
         if($exception instanceof ClientException) {
             $message = $exception->getResponse()->getBody();

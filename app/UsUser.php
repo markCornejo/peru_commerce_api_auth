@@ -64,7 +64,7 @@ class UsUser extends Authenticatable
     }
 
     /**
-     * Many to Many with pc_users_roles
+     * Many to Many with pc_users_roles, manager
      *
      *
      */
@@ -176,7 +176,37 @@ class UsUser extends Authenticatable
         }
 
         return $result; // abort(Response::HTTP_FORBIDDEN, "Query error scopeGetFullDataUserRole.");
+    }
 
+
+    /**
+     * registrar usuario con rol para administración de sitio
+     *
+     * @param  App\UsUser $query
+     * @param  int $user_id
+     * @param  int $role_id
+     * @param  int $site
+     *
+     */
+    public function scopeStoreRoleAdmin($query, int $user_id, int $role_id, int $site) {
+
+        $existRolMaster = $query->whereHas('pc_users_roles', function($query) use ($user_id) {
+                                    return $query->where('pc_users_roles.us_users_id', $user_id)->whereNull('pc_users_roles.pc_sites_id');
+                                })->count();
+
+        if($existRolMaster == "0") {
+            $existRolAdmin = self::whereHas('pc_users_roles', function($query) use ($site, $user_id, $role_id) {
+                                    return $query->where('pc_users_roles.pc_roles_id', $role_id)->where('pc_users_roles.us_users_id', $user_id)->where('pc_users_roles.pc_sites_id', $site);
+                                })->count();
+
+            if($existRolAdmin == "0") {
+                self::findOrFail($user_id)->pc_users_roles()->attach($role_id, ['pc_sites_id' => $site, 'user_add' => Auth::id(), 'date_add' => Carbon::now()->format('Y-m-d H:i:s')]);
+            } else {
+                abort(400, "The data was already recorded.");
+            }
+        } else {
+            abort(400, "The data was already recorded.");
+        }
     }
 
 }

@@ -55,7 +55,7 @@ class AclMaster
         // $connectMongo = $this->_serviceMongo->CheckConnection();
         $connectMongo = true;
 
-        if($connectMongo && MgRolePrivilege::verifyRolPrivilege($user_id, $ACL)) { // si connectMongo = true y está en cache mongo entonces. mongodb
+        if($connectMongo && MgRolePrivilege::verifyRolPrivilege($user_id, 0, $ACL)) { // si connectMongo = true y está en cache mongo entonces. mongodb
             return $next($request);
         } else {
 
@@ -69,7 +69,7 @@ class AclMaster
 
             if(@$rol) {
                 $rol_id = $rol->id;
-                $privilege = PcPrivilegesAction::whereHas('pc_privileges_roles', function(Builder $query) use ($rol_id) {
+                $privilege = PcPrivilegesAction::whereHas('privileges_roles_master', function(Builder $query) use ($rol_id) {
                                                     $query->where('id', $rol_id);
                                                 })
                                                 ->where('action_name', $ACL)
@@ -78,7 +78,7 @@ class AclMaster
 
                 if($privilege) {
 
-                    MgRolePrivilege::registerAclCache($user_id, $rol_id, $rol); // registrar eb mongodb
+                    MgRolePrivilege::registerAclCache($user_id, $rol_id, $rol, 0); // registrar eb mongodb
                     return $next($request);
                 }
 

@@ -25,6 +25,8 @@ class MgRolePrivilege extends Model
         'firstname',
         'lastname',
         'id_role',
+        'id_site',
+        // 'id_type',
         'role_name',
         'firstname',
         'privilege',
@@ -40,18 +42,24 @@ class MgRolePrivilege extends Model
      *
      * @param  App\MgRolePrivilege $query
      * @param  int $user_id
+     * @param  int $site_id
      * @param  string $ACL
      * @return App\MgRolePrivilege
      */
-    public function scopeVerifyRolPrivilege($query, int $user_id, $ACL) {
-        return $query->where('id_user', $user_id)
+    public function scopeVerifyRolPrivilege($query, int $user_id, int $site_id, $ACL) {
+
+        $query = $query->where('id_user', $user_id)
                      ->where(
                         'privilege',
                         'elemMatch',
                         ['action_name' => $ACL]
-                     )
-                     ->count()
-                     ;
+                     );
+
+        if(@$site_id) {
+            $query = $query->where('id_site', $site_id);
+        }
+
+        return $query->count();
     }
 
     /**
@@ -61,19 +69,24 @@ class MgRolePrivilege extends Model
      * @param  int $user_id
      * @param  int $rol_id
      * @param  App\PcRole $rol
+     * @param  int $site_id
      * @return App\MgRolePrivilege
      */
-    public function scopeRegisterAclCache($query, int $user_id, int $rol_id, $rol) {
+    public function scopeRegisterAclCache($query, int $user_id, int $rol_id, $rol, int $site_id) {
 
         try{
+
+            if(@$site_id) $table_name = 'privileges_roles_admin'; else $table_name = 'privileges_roles_master';
 
             $user = Auth::user();
             $arrayMg["id_user"] = $user_id;
             $arrayMg["firstname"] = $user->firstname;
             $arrayMg["lastname"] = $user->lastname;
             $arrayMg['id_role'] = $rol_id;
+            $arrayMg['id_site'] = @$site_id;
+            // $arrayMg['id_type'] = @$type_id;
             $arrayMg['role_name'] = $rol->name;
-            $arrayMg['privilege'] = PcPrivilegesAction::whereHas('pc_privileges_roles', function(Builder $query) use ($rol_id) {
+            $arrayMg['privilege'] = PcPrivilegesAction::whereHas($table_name, function(Builder $query) use ($rol_id) {
                                         $query->where('id', $rol_id);
                                     })->get()->toArray();
             $query = $query->create($arrayMg);
@@ -81,7 +94,6 @@ class MgRolePrivilege extends Model
         } catch (\Exception $e) {
             // Log::info(" Mongo error App\Services\MongoService - RegisterCache  -- ".$e);
             abort(500, "Mongo error App\Services\MongoService - RegisterCache ". $e);
-
         }
 
         return $query;
@@ -94,7 +106,7 @@ class MgRolePrivilege extends Model
      *
      * @param  App\MgRolePrivilege $query
      * @param  int $role_id
-     * @param  int $status
+     * @param  int $status // eliminar caché
      * @return App\MgRolePrivilege
      */
     public function scopeChangeRolIdStatusAclCache($query, int $role_id, $status) {

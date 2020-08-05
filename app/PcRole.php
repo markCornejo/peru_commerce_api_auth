@@ -47,12 +47,21 @@ class PcRole extends Model
     }
 
     /**
-     * Many to Many with pc_privileges_actions
+     * Many to Many with pc_privileges_roles_master
      *
      *
      */
-    public function pc_privileges_actions() {
-        return $this->belongsToMany('App\PcPrivilegesAction', 'pc_privileges_roles', 'pc_roles_id', 'pc_privileges_action_name');
+    public function privileges_roles_master() {
+        return $this->belongsToMany('App\PcPrivilegesAction', 'pc_privileges_roles_master', 'pc_roles_id', 'pc_privileges_action_name');
+    }
+
+    /**
+     * Many to Many with pc_privileges_roles_master
+     *
+     *
+     */
+    public function privileges_roles_admin() {
+        return $this->belongsToMany('App\PcPrivilegesAction', 'pc_privileges_roles_admin', 'pc_roles_id', 'pc_privileges_action_name');
     }
 
     /* ************************************************************************************************************************************/
@@ -115,6 +124,8 @@ class PcRole extends Model
      */
     public function scopeSelectFirst($query, int $role_id) {
         return $query->where("id", $role_id)
+                     ->where('status', 0)
+                     ->orWhere('status', 1)
                      ->with('pc_role_lg')
                      ;
     }
@@ -152,19 +163,26 @@ class PcRole extends Model
      *
      * @param  App\PcRole $query
      * @param  int $pc_role_id
+     * @param  int $type_id // 1 = admin, 2 = master
      * @return App\PcRole
      */
-    public function scopeRoleWithPrivilege($query, int $pc_role_id) {
+    public function scopeRoleWithPrivilege($query, int $pc_role_id, int $type_id) {
+
+        if($type_id === 1) {
+            $table_type = "privileges_roles_admin";
+        } else {
+            $table_type = "privileges_roles_master";
+        }
 
         // $result = $query->witch
-        $result1 = $query->with('pc_privileges_actions')->findOrFail($pc_role_id);
-        $array_action_name = Arr::pluck($result1->pc_privileges_actions, ['action_name']);
+        $result1 = $query->with($table_type)->findOrFail($pc_role_id);
+        $array_action_name = Arr::pluck($result1->$table_type, ['action_name']);
 
         $sql = "CASE action_name WHEN 'ejemploFirst' THEN false ";
         foreach($array_action_name as $key => $value) {
             $sql = $sql . "WHEN '$value' THEN true ";
         }
-        $sql = $sql . "ELSE false END as check_rol"; // check_rol. Si es true es un rol que le pertenece, si es false el privilegio no le pertenece
+        $sql = $sql . "ELSE false END as check_rol"; // check_rol. Si es true es un rol que le pertenece, si es false el privilegio no le pertenece.
 
         $qu4 = function($query) use ($sql) {
             return $query->select('action_name', 'label', 'class_icon', 'type_id', 'checkeable', DB::raw($sql), 'pc_privileges_action_name')
@@ -193,6 +211,7 @@ class PcRole extends Model
 
         $result2 = PcPrivilegesAction::select('action_name', 'label', 'class_icon', 'type_id', 'checkeable', DB::raw($sql), 'pc_privileges_action_name')
                                      ->whereIn('action_name', ['store', 'master'])
+                                     ->where('type_id', $type_id)
                                      ->where('status', 1)
                                      ->with(['pc_privileges_action_name' => $qu])
                                      ->get();

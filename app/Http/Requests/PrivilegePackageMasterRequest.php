@@ -3,9 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Arr;
 
-class PrivilegeRequest extends FormRequest
+class PrivilegePackageMasterRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -29,8 +28,9 @@ class PrivilegeRequest extends FormRequest
             case 'POST':
                 return [
                     // 'language_main' => 'required|json',
-                    'action_name' => 'array',
-                    'action_name.*.pc_privileges_action_name' => ['required','string']
+                    'privileges_packages' => 'required|array|max:30',
+                        'privileges_packages.*.pc_privileges_action_name' => 'required|string',
+                    // 'pc_sales_packages_id' => 'required|integer'
                 ];
                 break;
             case 'GET':
@@ -42,12 +42,10 @@ class PrivilegeRequest extends FormRequest
                 break;
             case 'PATCH':
             case 'PUT':
-                return [];
                 break;
             default:
                 return [];
                 break;
        }
-
     }
 }

@@ -66,5 +66,6 @@ class Kernel extends HttpKernel
 
         'lang' => \App\Http\Middleware\Language::class,
         'ACL.master' => \App\Http\Middleware\AclMaster::class,
+        'ACL.admin' => \App\Http\Middleware\AclAdmin::class,
     ];
 }

@@ -33,4 +33,9 @@ return [
     "personal_access_client_id" => env('PASSPORT_PERSONAL_ACCESS_CLIENT_ID', 'abc'),
     "personal_access_client_secret" => env('PASSPORT_PERSONAL_ACCESS_CLIENT_SECRET', 'abc'),
 
+    'apisite' => [
+        'base_uri' => env('API_PER_SITE_URL'),
+        'secret' => env('API_PER_SITE_SECRET')
+    ]
+
 ];

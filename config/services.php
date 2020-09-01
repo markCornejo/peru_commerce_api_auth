@@ -33,9 +33,22 @@ return [
     "personal_access_client_id" => env('PASSPORT_PERSONAL_ACCESS_CLIENT_ID', 'abc'),
     "personal_access_client_secret" => env('PASSPORT_PERSONAL_ACCESS_CLIENT_SECRET', 'abc'),
 
+    //
+    'image_tmp' => "public/tmp", // url para guardar imagenes temporales en storage
+
     'apisite' => [
         'base_uri' => env('API_PER_SITE_URL'),
         'secret' => env('API_PER_SITE_SECRET')
+    ],
+
+    // tipo de imagen, path y tamaños
+    'image' => [
+        'tmp' => [
+            // 'url' => 'public/file/logo', // path , esto está linkiado en public desde la carpeta storage
+            // 'size' => ['80', '160', '300', '450'], // size, Example, In the end the image will be located in: file/logo/80/miimagen.jpg
+            // 'oritation' => 'h', // mantener proporcion h => horizontal, v => vertical, o => ambos (cuadratica)
+            'url' => env('URL_IMAGE_TEMP') // ubicación de la imagen para renderizar.
+        ]
     ]
 
 ];

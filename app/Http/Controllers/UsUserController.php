@@ -9,7 +9,6 @@ use App\Http\Resources\UsUser as UsUserResource;
 use App\Services\UserService;
 use App\Traits\ApiResponserGateway;
 
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -135,6 +134,12 @@ class UsUserController extends Controller
 
     }
 
+    /**
+     * cerrar sesion
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
     public function logout(Request $request){
 
         if (Auth::check()) {
@@ -144,4 +149,17 @@ class UsUserController extends Controller
 
         return $this->successResponse(false, [], 'Problems disconnecting');
     }
+
+
+    /**
+     * Verificar token
+     *
+     * @return @return \Illuminate\Http\Response  true => token habilitado / UnAuthorization => token no habilitado
+     */
+    public function check(/*Request $request*/)
+    {
+        return response()->json(true);
+    }
+
+
 }

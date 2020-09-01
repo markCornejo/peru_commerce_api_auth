@@ -46,7 +46,7 @@ class MgRolePrivilege extends Model
      * @param  string $ACL
      * @return App\MgRolePrivilege
      */
-    public function scopeVerifyRolPrivilege($query, int $user_id, int $site_id, $ACL) {
+    public function scopeVerifyRolPrivilege($query, $user_id, $site_id, $ACL) {
 
         $query = $query->where('id_user', $user_id)
                      ->where(

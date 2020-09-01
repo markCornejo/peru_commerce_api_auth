@@ -29,6 +29,7 @@ class SiteController extends Controller
     public function __construct(ApiSiteSiteService $apiSiteSiteService)
     {
         $this->_apiSiteSiteService = $apiSiteSiteService;
+        $this->middleware('ACL.admin:admin')->only(['index', 'store', 'show', 'update', 'destroy']);
     }
 
     /**
@@ -53,7 +54,7 @@ class SiteController extends Controller
     {
         //
         $lang = $request->route('lang');
-        return $this->successResponse($this->_apiSiteSiteService->siteStore($lang, $request->all()));
+        return $this->successResponse($this->_apiSiteSiteService->siteStore($lang, $request->all()), Response::HTTP_CREATED);
     }
 
     /**
@@ -67,7 +68,7 @@ class SiteController extends Controller
         //
         $lang = $request->route('lang');
         $site = $request->route('site');
-        return $this->successResponse($this->_apiSiteSiteService->getSiteIndex($lang, $site), Response::HTTP_CREATED);
+        return $this->successResponse($this->_apiSiteSiteService->getSiteIndex($lang, $site));
     }
 
     /**

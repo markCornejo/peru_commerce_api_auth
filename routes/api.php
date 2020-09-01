@@ -24,11 +24,14 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::group(['prefix' => 'v1/{lang}', 'middleware' => 'lang'], function () {
 
+    Route::post('login', 'UsUserController@login'); // login
+    Route::post('login/check', 'UsUserController@check')->middleware('auth:api'); // check login
+
     Route::group(['prefix' => 'sites'], function () {
 
         // Route::post('{pc_sites_id}/users/register', 'UsUserController@register');
         Route::post('{pc_sites_id}/users', 'UsUserController@store'); // registro de usuario
-        Route::post('{pc_sites_id}/users/login', 'UsUserController@login');
+        Route::post('{pc_sites_id}/users/login', 'UsUserController@login'); // login
 
         Route::group(['middleware' => 'auth:api'], function () {
             Route::put('{pc_sites_id}/users', 'UsUserController@update'); //actualizar datos del usuario

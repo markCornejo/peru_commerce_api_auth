@@ -15,9 +15,12 @@ class SiteService {
      */
     public $baseUri;
 
+    public $secret;
+
     public function __construct()
     {
         $this->baseUri = config('services.apisite.base_uri');
+        $this->secret = config('services.apisite.secret');
     }
 
     /**
@@ -54,7 +57,6 @@ class SiteService {
         return $this->performRequest("PUT", $lang . '/admin/sites/' . $site_id, $data, ['Accept' => 'application/json']);
     }
 
-
     /**
      * Obtener data de un sitio
      *
@@ -63,7 +65,42 @@ class SiteService {
      * @return void
      */
     public function simple($lang, int $site_id) {
-        return $this->performRequest("GET", $lang . '/admin/sites/' . $site_id . '/simples', [], ['Accept' => 'application/json']);
+        return $this->performRequest("GET", $lang . '/sites/' . $site_id . '/simples', [], ['Accept' => 'application/json']);
+    }
+
+    /**
+     * Obtener todos las imagenes de un micrositio
+     *
+     * @param  string $lang
+     * @param  int $site_id
+     * @return void
+     */
+    public function getImages($lang, int $site_id) {
+        return $this->performRequest("GET", $lang . '/admin/sites/' . $site_id . '/images', [], ['Accept' => 'application/json']);
+    }
+
+    /**
+     * Guardar todas las imagenes
+     *
+     * @param  string $lang
+     * @param  int $site_id
+     * @param  array $data
+     * @return void
+     */
+    public function setImages($lang, int $site_id, $data) {
+        return $this->performRequest("POST", $lang . '/admin/sites/' . $site_id . '/images', $data, ['Accept' => 'application/json']);
+    }
+
+    /**
+     * Eliminar imagen
+     *
+     * @param  string $lang
+     * @param  int $site_id
+     * @param  int $image_id
+     * @return void
+     */
+    public function delImages($lang, int $site_id, int $image_id) {
+        return $this->performRequest("DELETE", $lang . '/admin/sites/' . $site_id . '/images/' . $image_id, [], ['Accept' => 'application/json']);
     }
 
 }

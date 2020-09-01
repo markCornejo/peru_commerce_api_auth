@@ -42,8 +42,6 @@ class AclAdmin
         $site = (int) $request->route('site');
         $lang = $request->route('lang');
         $connectMongo = true;
-
-
         // $package_id = 1; // obtener paquete de api-per-site. package_id en la tabla pc_sites
         $sitedata = $this->_apiSiteSiteService->simple($lang, $site);
         $package_id = json_decode($sitedata)->data->sales_packages_id;
@@ -62,7 +60,6 @@ class AclAdmin
             if(@$rol) { // si es manager
 
                 $rol_id = $rol->id;
-
                 $privilege = PcPrivilegesAction::whereHas('privileges_roles_admin', function(Builder $query) use ($rol_id, $package_id) {
                                                     $query->where('id', $rol_id)
                                                           ->where('pc_privileges_roles_admin.pc_sales_packages_id', $package_id); // se coloca el nombre de la tabla pc_privileges_roles_admin
@@ -73,14 +70,14 @@ class AclAdmin
                                                 ->first();
 
                 if($privilege) {
+
                     MgRolePrivilege::registerAclCache($user_id, $rol_id, $rol, $site); // registrar eb mongodb
                     return $next($request);
                 }
             }
-
         }
 
-        return $this->withMongoOfMaster($request, $next, 'Master');
+        return $this->withMongoOfMaster($request, $next, 'master');
 
     }
 
@@ -117,11 +114,9 @@ class AclAdmin
                                                 ->first();
 
                 if($privilege) {
-
                     MgRolePrivilege::registerAclCache($user_id, $rol_id, $rol, 0); // registrar eb mongodb
                     return $next($request);
                 }
-
             }
         }
 

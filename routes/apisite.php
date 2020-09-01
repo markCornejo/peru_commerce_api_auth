@@ -12,8 +12,13 @@ Route::group(['prefix' => 'v1/{lang}', 'middleware' => 'lang'], function () {
     });
 
     // rutas admin
-    Route::group(['prefix' => 'admin'], function () {
-        Route::apiResource('site', 'ApiSite\Admin\SiteController');
+    Route::group(['prefix' => 'admin', 'middleware' => 'auth:api'], function () {
+        Route::apiResource('sites', 'ApiSite\Admin\SiteController');
+        // Route::apiResource('sites.images', 'ApiSite\Admin\ImageController')->shallow()->except(['show', 'update', 'destroy']);
+
+        Route::group(['prefix' => 'sites/{site}'], function () {
+            Route::apiResource('images', 'ApiSite\Admin\ImageController');
+        });
         // Route::apiResource('site.categorysubcategory', 'Admin\CategorySubcategoryController')->shallow();
     });
 

@@ -75,8 +75,8 @@ class SiteService {
      * @param  int $site_id
      * @return void
      */
-    public function getImages($lang, int $site_id) {
-        return $this->performRequest("GET", $lang . '/admin/sites/' . $site_id . '/images', [], ['Accept' => 'application/json']);
+    public function getImages($lang, int $site_id, int $skip, int $take) {
+        return $this->performRequest("GET", $lang . '/admin/sites/' . $site_id . '/images?skip_image='.$skip.'&take_image='.$take, [], ['Accept' => 'application/json']);
     }
 
     /**
@@ -102,5 +102,32 @@ class SiteService {
     public function delImages($lang, int $site_id, int $image_id) {
         return $this->performRequest("DELETE", $lang . '/admin/sites/' . $site_id . '/images/' . $image_id, [], ['Accept' => 'application/json']);
     }
+
+    /**
+     * cortar imagenes gallery
+     *
+     * @param  string $lang
+     * @param  int $site_id
+     * @param  int $image_id
+     * @param  array $data
+     * @return void
+     */
+    public function cutImagesCropper($lang, int $site_id, int $image_id, $data) {
+        return $this->performRequest("PUT", $lang . '/admin/sites/' . $site_id . '/images/' . $image_id . '/cropper', $data, ['Accept' => 'application/json']);
+    }
+
+
+    /**
+     * Registrar locacion para un lugar
+     *
+     * @param  string $lang
+     * @param  int $site_id
+     * @param  array $data
+     * @return void
+     */
+    public function siteLocationStore($lang, int $site_id, $data) {
+        return $this->performRequest("POST", $lang . '/admin/sites/' . $site_id . '/locations', $data, ['Accept' => 'application/json']);
+    }
+
 
 }

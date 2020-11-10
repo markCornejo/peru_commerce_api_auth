@@ -18,6 +18,9 @@ Route::group(['prefix' => 'v1/{lang}', 'middleware' => 'lang'], function () {
 
         Route::group(['prefix' => 'sites/{site}'], function () {
             Route::apiResource('images', 'ApiSite\Admin\ImageController');
+            Route::put('images/{image}/cropper', 'ApiSite\Admin\ImageCropperController@cut'); // cortar imagen
+            Route::apiResource('ubigeo', 'ApiSite\Admin\UbigeoController')->only(['index']);
+            Route::apiResource('locations', 'ApiSite\Admin\SiteLocationController')->shallow();
         });
         // Route::apiResource('site.categorysubcategory', 'Admin\CategorySubcategoryController')->shallow();
     });

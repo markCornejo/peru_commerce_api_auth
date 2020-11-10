@@ -46,7 +46,9 @@ class ImageController extends Controller
         //
         $lang = $request->route('lang');
         $site = $request->route('site');
-        return $this->successResponse($this->_apiSiteSiteService->getImages($lang, $site));
+        $take = $request->take_image;
+        $skip = $request->skip_image;
+        return $this->successResponse($this->_apiSiteSiteService->getImages($lang, $site, $skip, $take));
 
     }
 
@@ -61,7 +63,7 @@ class ImageController extends Controller
         $lang = $request->route('lang');
         $site = $request->route('site');
         Storage::makeDirectory(config('services.image_tmp'));
-        $tmp = $request->file('file')->storeAs('public/tmp', $request->file('file')->getClientOriginalName());
+        $tmp = $request->file('file')->storeAs(config('services.image_tmp'), $request->file('file')->getClientOriginalName());
         $name = $request->file('file')->getClientOriginalName();
 
         $data = [
